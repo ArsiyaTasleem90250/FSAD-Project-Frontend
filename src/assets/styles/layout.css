@@ -1,0 +1,111 @@
+/* ============================================
+   Layout – top bar only, full-width content
+   ============================================ */
+
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----- Top bar: nav links at top right ----- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-10);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+.topbar-brand {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--edu-primary);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.topbar-brand:hover {
+  color: var(--edu-primary-hover);
+}
+
+.topbar-logout {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--edu-text-muted);
+  background: transparent;
+  border: 1px solid var(--edu-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.topbar-logout:hover {
+  background: var(--edu-warning-bg);
+  color: var(--edu-warning);
+  border-color: var(--edu-warning);
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.topbar-nav a {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--edu-text-muted);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.topbar-nav a:hover {
+  background: var(--edu-primary-bg);
+  color: var(--edu-primary);
+  text-decoration: none;
+}
+
+.topbar-nav a:active {
+  background: var(--edu-primary-bg);
+  color: var(--edu-primary-hover);
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    flex-wrap: wrap;
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .topbar-nav {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .topbar-nav a {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* ----- Content: full width (no sidebar) ----- */
+.content {
+  flex: 1;
+  padding: var(--space-8) var(--space-10);
+  max-width: 100%;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: var(--space-6) var(--space-4);
+  }
+}

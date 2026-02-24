@@ -1,0 +1,80 @@
+/* ============================================
+   Education theme – global (vibrant background + pattern)
+   ============================================ */
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--edu-text);
+  background-color: #e8f4fc;
+  background-image:
+    /* Soft dot pattern overlay */
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.9) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(224, 242, 254, 0.85) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(237, 233, 254, 0.6) 0%, transparent 55%),
+    /* Colorful mesh gradient */
+    radial-gradient(ellipse 140% 100% at 95% 5%, rgba(14, 165, 233, 0.2) 0%, transparent 45%),
+    radial-gradient(ellipse 100% 80% at 5% 95%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse 80% 120% at 50% 0%, rgba(34, 211, 238, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 70% at 0% 50%, rgba(251, 191, 36, 0.08) 0%, transparent 40%),
+    linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 25%, #f5f3ff 60%, #fefce8 100%);
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Subtle floating shape decorations (CSS-only) */
+body::before {
+  content: "";
+  position: fixed;
+  top: -20%;
+  right: -10%;
+  width: 50vmax;
+  height: 50vmax;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: "";
+  position: fixed;
+  bottom: -15%;
+  left: -10%;
+  width: 45vmax;
+  height: 45vmax;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-wrap {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* Headings – education hierarchy */
+h1, h2, h3 {
+  color: var(--edu-primary);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+
+p {
+  margin: 0 0 var(--space-4);
+  color: var(--edu-text-muted);
+  line-height: var(--line-height-relaxed);
+}
+
+p:last-child {
+  margin-bottom: 0;
+}

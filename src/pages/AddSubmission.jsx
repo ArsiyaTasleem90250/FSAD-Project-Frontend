@@ -1,0 +1,183 @@
+import { useState } from "react";
+import MainLayout from "../layout/MainLayout";
+import { useSubmissions } from "../context/SubmissionsContext";
+import { useAuth } from "../context/AuthContext";
+import FileViewDownload from "../components/FileViewDownload";
+import "../assets/styles/auth.css";
+
+function AddSubmission() {
+  const { addSubmission, submissions, deleteSubmission } = useSubmissions();
+  const { user } = useAuth();
+  const [course, setCourse] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [name, setName] = useState("");
+  const [file, setFile] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  const mySubmissions = submissions.filter(
+    (s) => s.studentEmail && user?.email && s.studentEmail === user.email
+  );
+
+  const handleDelete = (id) => {
+    if (window.confirm("Delete this submission? This cannot be undone.")) {
+      deleteSubmission(id);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!file) {
+      addSubmission({
+        course: course.trim(),
+        idNumber: idNumber.trim(),
+        name: name.trim(),
+        fileName: "",
+        studentEmail: user?.email || "",
+      });
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = typeof reader.result === "string" ? reader.result : null;
+        addSubmission({
+          course: course.trim(),
+          idNumber: idNumber.trim(),
+          name: name.trim(),
+          fileName: file.name,
+          studentEmail: user?.email || "",
+          fileData: base64,
+        });
+        setCourse("");
+        setIdNumber("");
+        setName("");
+        setFile(null);
+        setSubmitted(true);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+    setCourse("");
+    setIdNumber("");
+    setName("");
+    setFile(null);
+    setSubmitted(true);
+  };
+
+  return (
+    <MainLayout>
+      <div className="student-page">
+        <div className="student-page__form-wrap">
+          <div className="auth-box submission-box">
+            <h2>Submit assignment</h2>
+            <p className="auth-desc">Submit your assignment with course name, student ID, your name, and supporting file (PDF, Word, or text).</p>
+
+            {submitted && (
+              <div className="form-message form-message--success">
+                Submission added successfully.
+              </div>
+            )}
+
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="sub-course">Course</label>
+                <input
+                  id="sub-course"
+                  type="text"
+                  placeholder="Enter course name"
+                  value={course}
+                  onChange={(e) => setCourse(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="sub-id">ID number</label>
+                <input
+                  id="sub-id"
+                  type="text"
+                  placeholder="e.g. 2400090250"
+                  value={idNumber}
+                  onChange={(e) => setIdNumber(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="sub-name">Name</label>
+                <input
+                  id="sub-name"
+                  type="text"
+                  placeholder="Your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="sub-file">Upload file</label>
+                <input
+                  id="sub-file"
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  className="input-file"
+                />
+                {file && <span className="file-name">{file.name}</span>}
+              </div>
+              <button type="submit" className="button-primary">
+                Submit
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <section className="my-submissions">
+          <h2 className="my-submissions__title">My submissions</h2>
+          <p className="my-submissions__desc">Your submitted assignments. Use <strong>View</strong> to open the submitted PDF/file in the browser and <strong>Download</strong> to save it. Marks and the faculty who graded each submission appear once assigned.</p>
+          {mySubmissions.length === 0 ? (
+            <p className="my-submissions__empty">No submissions yet. Submit an assignment above.</p>
+          ) : (
+            <div className="my-submissions__table-wrap">
+              <table className="edu-table my-submissions__table">
+                <thead>
+                  <tr>
+                    <th>Course</th>
+                    <th>ID number</th>
+                    <th>Name</th>
+                    <th>File</th>
+                    <th>Marks</th>
+                    <th>Graded by</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mySubmissions.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.course}</td>
+                      <td>{row.idNumber}</td>
+                      <td>{row.name}</td>
+                      <td>
+                        <FileViewDownload fileData={row.fileData} fileName={row.fileName} />
+                      </td>
+                      <td><strong>{row.marks || "—"}</strong></td>
+                      <td>{row.gradedBy || "—"}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="my-submissions__delete-btn"
+                          onClick={() => handleDelete(row.id)}
+                          title="Delete this submission"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
+    </MainLayout>
+  );
+}
+
+export default AddSubmission;

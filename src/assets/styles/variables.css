@@ -1,0 +1,97 @@
+/* ============================================
+   Education design system – variables
+   ============================================ */
+
+:root {
+  /* Primary – academic blue */
+  --edu-primary: #1e3a5f;
+  --edu-primary-hover: #152a47;
+  --edu-primary-light: #2d4a6f;
+  --edu-primary-bg: #e8eef5;
+
+  /* Accent – teal */
+  --edu-accent: #0d9488;
+  --edu-accent-hover: #0f766e;
+  --edu-accent-light: #ccfbf1;
+
+  /* Extra palette – more color variety */
+  --edu-violet: #6d28d9;
+  --edu-violet-bg: #ede9fe;
+  --edu-amber: #d97706;
+  --edu-amber-bg: #fef3c7;
+  --edu-sky: #0284c7;
+  --edu-sky-bg: #e0f2fe;
+  --edu-rose: #be123c;
+  --edu-rose-bg: #ffe4e6;
+  --edu-emerald: #047857;
+  --edu-emerald-bg: #d1fae5;
+
+  /* Success / Submitted */
+  --edu-success: #059669;
+  --edu-success-bg: #d1fae5;
+
+  /* Warning / Not submitted */
+  --edu-warning: #dc2626;
+  --edu-warning-bg: #fee2e2;
+
+  /* Neutrals */
+  --edu-white: #ffffff;
+  --edu-off-white: #f8fafc;
+  --edu-bg: #f1f5f9;
+  --edu-bg-warm: #faf9f7;
+  --edu-border: #e2e8f0;
+  --edu-border-soft: #f1f5f9;
+  --edu-text: #1e293b;
+  --edu-text-muted: #64748b;
+  --edu-text-light: #94a3b8;
+
+  /* Typography */
+  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-size-xs: 0.8125rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.65;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(30, 58, 95, 0.06);
+  --shadow-md: 0 4px 12px rgba(30, 58, 95, 0.08);
+  --shadow-lg: 0 10px 30px rgba(30, 58, 95, 0.1);
+  --shadow-card: 0 2px 8px rgba(30, 58, 95, 0.06), 0 8px 24px rgba(30, 58, 95, 0.06);
+  --shadow-colored: 0 4px 14px rgba(30, 58, 95, 0.12);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
