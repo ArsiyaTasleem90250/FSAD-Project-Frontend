@@ -4,46 +4,55 @@
 
 :root {
   /* Primary – academic blue */
-  --edu-primary: #1e3a5f;
-  --edu-primary-hover: #152a47;
-  --edu-primary-light: #2d4a6f;
-  --edu-primary-bg: #e8eef5;
+  --edu-primary: #1f395e;
+  --edu-primary-hover: #162a4d;
+  --edu-primary-light: #4f70be;
+  --edu-primary-bg: #e6efff;
 
   /* Accent – teal */
-  --edu-accent: #0d9488;
-  --edu-accent-hover: #0f766e;
-  --edu-accent-light: #ccfbf1;
+  --edu-accent: #0ea5e9;
+  --edu-accent-hover: #0b76b3;
+  --edu-accent-light: #d9f6ff;
+  --edu-secondary: #7c3aed;
+  --edu-secondary-hover: #6d28d9;
+  --edu-secondary-light: #ede9fe;
 
   /* Extra palette – more color variety */
-  --edu-violet: #6d28d9;
+  --edu-violet: #7c3aed;
   --edu-violet-bg: #ede9fe;
-  --edu-amber: #d97706;
-  --edu-amber-bg: #fef3c7;
-  --edu-sky: #0284c7;
-  --edu-sky-bg: #e0f2fe;
-  --edu-rose: #be123c;
-  --edu-rose-bg: #ffe4e6;
-  --edu-emerald: #047857;
-  --edu-emerald-bg: #d1fae5;
+  --edu-amber: #f59e0b;
+  --edu-amber-bg: #fffbeb;
+  --edu-sky: #38bdf8;
+  --edu-sky-bg: #dbeafe;
+  --edu-rose: #ec4899;
+  --edu-rose-bg: #ffe4ef;
+  --edu-emerald: #10b981;
+  --edu-emerald-bg: #def7ec;
 
   /* Success / Submitted */
-  --edu-success: #059669;
+  --edu-success: #16a34a;
   --edu-success-bg: #d1fae5;
 
   /* Warning / Not submitted */
-  --edu-warning: #dc2626;
-  --edu-warning-bg: #fee2e2;
+  --edu-warning: #d97706;
+  --edu-warning-bg: #fef3c7;
 
   /* Neutrals */
   --edu-white: #ffffff;
-  --edu-off-white: #f8fafc;
-  --edu-bg: #f1f5f9;
-  --edu-bg-warm: #faf9f7;
-  --edu-border: #e2e8f0;
-  --edu-border-soft: #f1f5f9;
-  --edu-text: #1e293b;
-  --edu-text-muted: #64748b;
+  --edu-surface: #ffffff;
+  --edu-surface-soft: #f8fbff;
+  --edu-off-white: #f7fafc;
+  --edu-bg: #f3f7ff;
+  --edu-bg-warm: #fbf7ef;
+  --edu-border: #d9e5f5;
+  --edu-border-soft: #e9f1fb;
+  --edu-text: #1d2939;
+  --edu-text-muted: #5b708a;
   --edu-text-light: #94a3b8;
+
+  /* Gradients */
+  --edu-accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 48%, #14b8a6 100%);
+  --edu-gradient-header: var(--edu-accent-gradient);
 
   /* Typography */
   --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;

@@ -9,52 +9,130 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--edu-text);
-  background-color: #e8f4fc;
+  background-color: var(--edu-bg);
   background-image:
-    /* Soft dot pattern overlay */
-    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.9) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(224, 242, 254, 0.85) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(237, 233, 254, 0.6) 0%, transparent 55%),
-    /* Colorful mesh gradient */
-    radial-gradient(ellipse 140% 100% at 95% 5%, rgba(14, 165, 233, 0.2) 0%, transparent 45%),
-    radial-gradient(ellipse 100% 80% at 5% 95%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
-    radial-gradient(ellipse 80% 120% at 50% 0%, rgba(34, 211, 238, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 90% 70% at 0% 50%, rgba(251, 191, 36, 0.08) 0%, transparent 40%),
-    linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 25%, #f5f3ff 60%, #fefce8 100%);
+    radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.14) 0%, transparent 24%),
+    radial-gradient(circle at 85% 15%, rgba(124, 58, 237, 0.12) 0%, transparent 28%),
+    radial-gradient(circle at 25% 85%, rgba(59, 130, 246, 0.08) 0%, transparent 32%),
+    linear-gradient(180deg, var(--edu-bg) 0%, var(--edu-off-white) 48%, var(--edu-white) 100%);
   background-attachment: fixed;
   position: relative;
 }
 
 /* Subtle floating shape decorations (CSS-only) */
-body::before {
+body::before,
+body::after {
   content: "";
   position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatPulse 14s ease-in-out infinite;
+}
+
+body::before {
   top: -20%;
   right: -10%;
   width: 50vmax;
   height: 50vmax;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.16) 0%, transparent 70%);
 }
+
 body::after {
-  content: "";
-  position: fixed;
   bottom: -15%;
   left: -10%;
   width: 45vmax;
   height: 45vmax;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.14) 0%, transparent 70%);
 }
 
 .app-wrap {
   min-height: 100vh;
   position: relative;
   z-index: 1;
+}
+
+@keyframes floatPulse {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.04);
+    opacity: 0.88;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -120% 0; }
+  100% { background-position: 120% 0; }
+}
+
+.glow-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248, 250, 255, 0.95));
+  border: 1px solid rgba(255,255,255,0.72);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glow-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+  border-color: rgba(14, 165, 233, 0.25);
+}
+
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.16), transparent 30%),
+    radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.14), transparent 28%);
+  pointer-events: none;
+}
+
+.animated-btn,
+.button-animated {
+  position: relative;
+  overflow: hidden;
+}
+
+.animated-btn::before,
+.button-animated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(14,165,233,0.12), rgba(124,58,237,0.12), rgba(16,185,129,0.12));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.animated-btn:hover::before,
+.button-animated:hover::before {
+  opacity: 1;
+}
+
+.shimmer-text {
+  display: inline-block;
+  background: linear-gradient(90deg, rgba(30, 64, 175, 0.95), rgba(124, 58, 237, 0.95), rgba(14, 165, 233, 0.95));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shimmer 2.6s linear infinite;
+}
+
+.gradient-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(14,165,233,0.12), rgba(124,58,237,0.12));
+  color: var(--edu-primary);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Headings – education hierarchy */

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useSubmissions } from "../context/SubmissionsContext";
 import { useAuth } from "../context/AuthContext";
@@ -15,26 +15,52 @@ function Marking() {
   const { submissions, updateMarks } = useSubmissions();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedIdNumber, setSelectedIdNumber] = useState(null);
 
   const graderLabel = user?.name || user?.email || "Faculty";
 
-  const todaySubmissions = useMemo(() => submissions.filter((s) => isToday(s.submittedAt)), [submissions]);
+  const visibleSubmissions = useMemo(() => submissions, [submissions]);
+
+  const courseOptions = useMemo(() => {
+    const courseSet = new Set();
+    visibleSubmissions.forEach((s) => {
+      if (s.course) courseSet.add(s.course);
+    });
+    return Array.from(courseSet).sort();
+  }, [visibleSubmissions]);
+
+  useEffect(() => {
+    if (selectedCourse && !courseOptions.includes(selectedCourse)) {
+      setSelectedCourse("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseOptions]);
+
+  const courseFilteredSubmissions = useMemo(() => {
+    if (!selectedCourse) return visibleSubmissions;
+    return visibleSubmissions.filter((s) => s.course === selectedCourse);
+  }, [visibleSubmissions, selectedCourse]);
+
+  const todaySubmissions = useMemo(
+    () => courseFilteredSubmissions.filter((s) => isToday(s.submittedAt)),
+    [courseFilteredSubmissions]
+  );
 
   const filteredSubmissions = useMemo(() => {
-    if (!searchQuery.trim()) return submissions;
+    if (!searchQuery.trim()) return courseFilteredSubmissions;
     const q = searchQuery.trim().toLowerCase();
-    return submissions.filter(
+    return courseFilteredSubmissions.filter(
       (s) =>
         (s.name && s.name.toLowerCase().includes(q)) ||
-        (s.idNumber && s.idNumber.toLowerCase().includes(q))
+        (s.idNumber && String(s.idNumber).toLowerCase().includes(q))
     );
-  }, [submissions, searchQuery]);
+  }, [courseFilteredSubmissions, searchQuery]);
 
   const selectedStudentSubmissions = useMemo(() => {
     if (!selectedIdNumber) return [];
-    return submissions.filter((s) => s.idNumber === selectedIdNumber);
-  }, [submissions, selectedIdNumber]);
+    return courseFilteredSubmissions.filter((s) => s.idNumber === selectedIdNumber);
+  }, [courseFilteredSubmissions, selectedIdNumber]);
 
   const selectedStudentName = selectedStudentSubmissions[0]?.name || selectedIdNumber;
 
@@ -81,17 +107,44 @@ function Marking() {
           )}
         </section>
 
-        {/* Search bar */}
+        {/* Course selector */}
         <div className="marking-search-wrap">
-          <label htmlFor="marking-search" className="marking-search-label">Search by name or ID</label>
-          <input
-            id="marking-search"
-            type="text"
-            className="marking-search-input"
-            placeholder="Type name or ID number..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div className="marking-course-selector">
+            <label className="marking-search-label">Select course</label>
+            <div className="marking-course-chips">
+              <button
+                type="button"
+                className={`marking-course-chip ${selectedCourse === "" ? "active" : ""}`}
+                onClick={() => setSelectedCourse("")}
+              >
+                All courses
+              </button>
+              {courseOptions.map((course) => (
+                <button
+                  key={course}
+                  type="button"
+                  className={`marking-course-chip ${selectedCourse === course ? "active" : ""}`}
+                  onClick={() => setSelectedCourse(course)}
+                >
+                  {course}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="marking-search-row">
+            <div className="marking-search-field">
+              <label htmlFor="marking-search" className="marking-search-label">Search by name or ID</label>
+              <input
+                id="marking-search"
+                type="text"
+                className="marking-search-input"
+                placeholder="Type name or ID number..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
 
         {/* All submissions table (with search filter) */}

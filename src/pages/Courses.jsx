@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import { useSubmissions } from "../context/SubmissionsContext";
@@ -65,28 +65,28 @@ function Courses() {
     const completed = registered.filter((c) => c.completed);
     const inProgress = registered.filter((c) => !c.completed);
     return { inProgressCourses: inProgress, completedCourses: completed };
-  }, [submissions, user?.email]);
+  }, [submissions, user]);
 
   const isStudent = user?.role === "Student";
 
-  const filterBySearch = (list, getLabel) => {
+  const filterBySearch = useCallback((list, getLabel) => {
     if (!searchQuery.trim()) return list;
     const q = searchQuery.trim().toLowerCase();
     return list.filter((item) => getLabel(item).toLowerCase().includes(q));
-  };
+  }, [searchQuery]);
 
   const savedCourses = useMemo(
     () =>
       filterBySearch(BTECH_COURSES, (c) => `${c.code} ${c.name}`),
-    [searchQuery]
+    [filterBySearch]
   );
   const inProgressFiltered = useMemo(
     () => filterBySearch(inProgressCourses, (c) => c.name),
-    [inProgressCourses, searchQuery]
+    [filterBySearch, inProgressCourses]
   );
   const completedFiltered = useMemo(
     () => filterBySearch(completedCourses, (c) => c.name),
-    [completedCourses, searchQuery]
+    [filterBySearch, completedCourses]
   );
 
   const toggleLearningDay = (i) => {

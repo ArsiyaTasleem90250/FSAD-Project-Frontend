@@ -7,19 +7,31 @@ function FileViewDownload({ fileData, fileName }) {
     return <span className="file-view-download file-view-download--na">{fileName || "—"}</span>;
   }
 
-  const isPdf = /\.pdf$/i.test(fileName);
-  const mime = isPdf ? "application/pdf" : "application/octet-stream";
+  const inferredMime = fileData?.split(",")[0]?.match(/data:([^;]+);/)?.[1];
+  const fallbackMime = /\.pdf$/i.test(fileName)
+    ? "application/pdf"
+    : /\.(png|jpe?g|gif|bmp|webp)$/i.test(fileName)
+    ? "image/*"
+    : "application/octet-stream";
+  const mime = inferredMime || fallbackMime;
+
+  const createBlobUrl = () => {
+    const base64 = fileData.split(",")[1] || "";
+    const byteString = atob(base64);
+    const ab = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i += 1) {
+      ab[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: mime });
+    return URL.createObjectURL(blob);
+  };
 
   const handleView = () => {
     try {
-      const byteString = atob(fileData.split(",")[1]);
-      const ab = new Uint8Array(byteString.length);
-      for (let i = 0; i < byteString.length; i++) ab[i] = byteString.charCodeAt(i);
-      const blob = new Blob([ab], { type: mime });
-      const url = URL.createObjectURL(blob);
+      const url = createBlobUrl();
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (_) {
+    } catch {
       window.alert("Could not open file.");
     }
   };
@@ -36,7 +48,7 @@ function FileViewDownload({ fileData, fileName }) {
       a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (_) {
+    } catch {
       window.alert("Could not download file.");
     }
   };

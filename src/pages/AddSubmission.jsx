@@ -26,24 +26,23 @@ function AddSubmission() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const submissionPayload = {
+      course: course.trim(),
+      idNumber: idNumber.trim(),
+      name: name.trim(),
+      fileName: file ? file.name : "",
+      studentEmail: user?.email || "",
+      department: user?.department || "",
+    };
+
     if (!file) {
-      addSubmission({
-        course: course.trim(),
-        idNumber: idNumber.trim(),
-        name: name.trim(),
-        fileName: "",
-        studentEmail: user?.email || "",
-      });
+      addSubmission(submissionPayload);
     } else {
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = typeof reader.result === "string" ? reader.result : null;
         addSubmission({
-          course: course.trim(),
-          idNumber: idNumber.trim(),
-          name: name.trim(),
-          fileName: file.name,
-          studentEmail: user?.email || "",
+          ...submissionPayload,
           fileData: base64,
         });
         setCourse("");
@@ -55,6 +54,7 @@ function AddSubmission() {
       reader.readAsDataURL(file);
       return;
     }
+
     setCourse("");
     setIdNumber("");
     setName("");
@@ -111,11 +111,11 @@ function AddSubmission() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="sub-file">Upload file</label>
+                <label htmlFor="sub-file">Upload file or image</label>
                 <input
                   id="sub-file"
                   type="file"
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.bmp,.webp"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   className="input-file"
                 />

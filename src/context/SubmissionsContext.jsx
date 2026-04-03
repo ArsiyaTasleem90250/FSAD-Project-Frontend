@@ -1,26 +1,24 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 
 const SubmissionsContext = createContext(null);
 
 const STORAGE_KEY = "sms_submissions_v3";
 
 export function SubmissionsProvider({ children }) {
-  const [submissions, setSubmissions] = useState([]);
-
-  useEffect(() => {
+  const [submissions, setSubmissions] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setSubmissions(JSON.parse(stored));
-      } else {
-        setSubmissions([]);
+        const parsed = JSON.parse(stored);
+        return parsed;
       }
-    } catch (_) {
-      setSubmissions([]);
+    } catch {
+      // Silently fail if localStorage is not available or parsing fails
     }
-  }, []);
+    return [];
+  });
 
-  const addSubmission = useCallback(({ course, idNumber, name, fileName, studentEmail, fileData }) => {
+  const addSubmission = useCallback(({ course, idNumber, name, fileName, studentEmail, fileData, department = "" }) => {
     const id = String(Date.now());
     const newOne = {
       id,
@@ -32,13 +30,17 @@ export function SubmissionsProvider({ children }) {
       marks: "",
       gradedBy: "",
       studentEmail: studentEmail || "",
+      department: department || "",
       submittedAt: Date.now(),
+      markedAt: null,
     };
     setSubmissions((prev) => {
       const next = [...prev, newOne];
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch (_) {}
+      } catch {
+        // Silently fail if localStorage is not available
+      }
       return next;
     });
     return id;
@@ -48,12 +50,19 @@ export function SubmissionsProvider({ children }) {
     setSubmissions((prev) => {
       const next = prev.map((s) =>
         s.id === id
-          ? { ...s, marks, gradedBy: marks && String(marks).trim() ? gradedBy : "" }
+          ? { 
+              ...s, 
+              marks, 
+              gradedBy: marks && String(marks).trim() ? gradedBy : "",
+              markedAt: marks && String(marks).trim() ? Date.now() : null,
+            }
           : s
       );
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch (_) {}
+      } catch {
+        // Silently fail if localStorage is not available
+      }
       return next;
     });
   }, []);
@@ -63,7 +72,9 @@ export function SubmissionsProvider({ children }) {
       const next = prev.filter((s) => s.id !== id);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch (_) {}
+      } catch {
+        // Silently fail if localStorage is not available
+      }
       return next;
     });
   }, []);
@@ -75,6 +86,7 @@ export function SubmissionsProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSubmissions() {
   const ctx = useContext(SubmissionsContext);
   if (!ctx) throw new Error("useSubmissions must be used within SubmissionsProvider");

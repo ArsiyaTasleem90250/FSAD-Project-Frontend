@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState, useCallback } from "react";
 import { DEPARTMENTS } from "../constants/departments";
 
 const RegistrationsContext = createContext(null);
@@ -17,25 +18,24 @@ const SEED_REGISTRATIONS = [
 ];
 
 export function RegistrationsProvider({ children }) {
-  const [registrations, setRegistrations] = useState([]);
+  const [registrations, setRegistrations] = useState(() => {
+    let initialData = SEED_REGISTRATIONS;
 
-  useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          setRegistrations(parsed);
-          return;
+          initialData = parsed;
         }
       }
-      setRegistrations(SEED_REGISTRATIONS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_REGISTRATIONS));
-    } catch (_) {
-      setRegistrations(SEED_REGISTRATIONS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_REGISTRATIONS));
+    } catch {
+      // Ignore corrupted stored data and fall back to seed registrations.
     }
-  }, []);
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
+    return initialData;
+  });
 
   const registerUser = useCallback(
     (email, role, department = "") => {
@@ -44,7 +44,14 @@ export function RegistrationsProvider({ children }) {
       setRegistrations((prev) => {
         const exists = prev.some((r) => r.email.toLowerCase() === trimmedEmail);
         if (exists) return prev;
-        const next = [...prev, { email: trimmedEmail, role, department: (department || "").trim() }];
+        const next = [
+          ...prev,
+          {
+            email: trimmedEmail,
+            role,
+            department: (department || "").trim(),
+          },
+        ];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
         return next;
       });
@@ -52,8 +59,20 @@ export function RegistrationsProvider({ children }) {
     []
   );
 
+  const updateRegistration = useCallback((email, updates = {}) => {
+    const trimmedEmail = (email || "").trim().toLowerCase();
+    if (!trimmedEmail) return;
+    setRegistrations((prev) => {
+      const next = prev.map((item) =>
+        item.email.toLowerCase() === trimmedEmail ? { ...item, ...updates } : item
+      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   return (
-    <RegistrationsContext.Provider value={{ registrations, registerUser }}>
+    <RegistrationsContext.Provider value={{ registrations, registerUser, updateRegistration }}>
       {children}
     </RegistrationsContext.Provider>
   );

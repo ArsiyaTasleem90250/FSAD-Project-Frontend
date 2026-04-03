@@ -2,35 +2,43 @@ import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import { useAuth } from "../context/AuthContext";
-import { DEPARTMENTS } from "../constants/departments";
+import { useRegistrations } from "../context/RegistrationsContext";
 import SimpleCaptcha from "../components/SimpleCaptcha";
 import "../assets/styles/auth.css";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [role, setRole] = useState("Student");
-  const [department, setDepartment] = useState(DEPARTMENTS[0]);
+  const { registrations } = useRegistrations();
   const [captchaCode, setCaptchaCode] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
   const [captchaError, setCaptchaError] = useState("");
+  const [loginError, setLoginError] = useState("");
   const captchaCodeRef = useRef("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setCaptchaError("");
+    setLoginError("");
     const code = captchaCodeRef.current || captchaCode;
     const valid = (captchaInput || "").trim().toLowerCase() === (code || "").toLowerCase();
     if (!valid) {
       setCaptchaError("Invalid code. Please enter the code shown above.");
       return;
     }
+
     const form = e.target;
-    const email = form.querySelector("#login-email")?.value ?? "";
+    const email = (form.querySelector("#login-email")?.value ?? "").trim().toLowerCase();
     const name = email.split("@")[0] || "User";
-    const dept = form.querySelector("#login-department")?.value ?? department;
-    login(role, email, name, dept);
-    if (role === "Student") {
+    const registeredUser = registrations.find((r) => r.email.toLowerCase() === email);
+
+    if (!registeredUser) {
+      setLoginError("No account found for this email. Please sign up first.");
+      return;
+    }
+
+    login(registeredUser.role, email, name, registeredUser.department);
+    if (registeredUser.role === "Student") {
       navigate("/add-submission");
     } else {
       navigate("/marking");
@@ -73,33 +81,7 @@ function Login() {
                 autoComplete="current-password"
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="login-role">Login as</label>
-              <select
-                id="login-role"
-                required
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="Student">Student</option>
-                <option value="Admin">Admin (Faculty)</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="login-department">Department</label>
-              <select
-                id="login-department"
-                required
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-              >
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {loginError && <p className="captcha-error">{loginError}</p>}
             <div className="form-group form-group--captcha">
               <SimpleCaptcha
                 onCodeChange={handleCaptchaCodeChange}

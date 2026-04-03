@@ -16,7 +16,7 @@ function MyLearningOutcomes() {
       submissions.filter(
         (s) => s.studentEmail && user?.email && s.studentEmail === user.email
       ),
-    [submissions, user?.email]
+    [submissions, user]
   );
 
   const { graded, pending, needImprovement } = useMemo(() => {

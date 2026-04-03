@@ -863,7 +863,7 @@
 }
 
 .edu-table tbody tr:nth-child(even):hover {
-  background: #f1f5f9;
+  background: var(--edu-off-white);
 }
 
 .marks-input {
@@ -949,6 +949,55 @@
   border-color: var(--edu-primary);
   box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12);
   outline: none;
+}
+
+.marking-course-selector {
+  margin-bottom: var(--space-5);
+}
+
+.marking-course-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.marking-course-chip {
+  padding: 0.75rem 1.1rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.95);
+  color: var(--edu-text-dark);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.marking-course-chip:hover,
+.marking-course-chip:focus-visible {
+  background: white;
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.marking-course-chip.active {
+  background: var(--edu-primary);
+  color: white;
+  border-color: var(--edu-primary);
+}
+
+.marking-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.marking-search-field {
+  flex: 1 1 280px;
+  min-width: 220px;
+}
+
+.marking-search-field select,
+.marking-search-field input {
+  width: 100%;
 }
 
 /* Clickable name in table */
@@ -1568,7 +1617,7 @@
 }
 
 .my-learning-card__btn:hover {
-  background: #1a365d;
+  background: var(--edu-primary-hover);
 }
 
 @media (max-width: 768px) {
@@ -1655,8 +1704,8 @@
 
 .outcomes-improve__item {
   padding: var(--space-3) var(--space-4);
-  background: #fef2f2;
-  border-left: 4px solid #dc2626;
+  background: var(--edu-error-bg);
+  border-left: 4px solid var(--edu-error);
   border-radius: var(--radius-sm);
   margin-bottom: var(--space-2);
   font-size: var(--font-size-sm);

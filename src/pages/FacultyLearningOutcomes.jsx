@@ -17,7 +17,7 @@ function FacultyLearningOutcomes() {
       (r) => r.role === "Admin" && r.email && user?.email && r.email.toLowerCase() === user.email.toLowerCase()
     );
     return reg?.department || "";
-  }, [user?.department, user?.email, registrations]);
+  }, [user, registrations]);
 
   const departmentStudentEmails = useMemo(() => {
     const emails = new Set();
@@ -36,10 +36,12 @@ function FacultyLearningOutcomes() {
   }, [registrations, facultyDepartment]);
 
   const departmentSubmissions = useMemo(() => {
-    return submissions.filter((s) =>
-      s.studentEmail ? departmentStudentEmails.has(s.studentEmail.toLowerCase()) : false
-    );
-  }, [submissions, departmentStudentEmails]);
+    return submissions.filter((s) => {
+      if (!facultyDepartment) return false;
+      if (s.department) return s.department === facultyDepartment;
+      return s.studentEmail ? departmentStudentEmails.has(s.studentEmail.toLowerCase()) : false;
+    });
+  }, [submissions, departmentStudentEmails, facultyDepartment]);
 
   const filteredSubmissions = useMemo(() => {
     if (!searchQuery.trim()) return departmentSubmissions;

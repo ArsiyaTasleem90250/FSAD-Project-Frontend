@@ -13,6 +13,7 @@ function Signup() {
   const { registerUser } = useRegistrations();
   const [role, setRole] = useState("Student");
   const [department, setDepartment] = useState(DEPARTMENTS[0]);
+  const [experience, setExperience] = useState(0);
   const [captchaCode, setCaptchaCode] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
   const [captchaError, setCaptchaError] = useState("");
@@ -31,8 +32,9 @@ function Signup() {
     const name = form.querySelector("#signup-name")?.value ?? "";
     const email = form.querySelector("#signup-email")?.value ?? "";
     const dept = form.querySelector("#signup-department")?.value ?? department;
+    const exp = role === "Admin" ? parseInt(form.querySelector("#signup-experience")?.value ?? "0", 10) : 0;
     registerUser(email, role, dept);
-    login(role, email, name, dept);
+    login(role, email, name, dept, "", exp);
     if (role === "Student") {
       navigate("/add-submission");
     } else {
@@ -122,6 +124,21 @@ function Signup() {
                 ))}
               </select>
             </div>
+            {role === "Admin" && (
+              <div className="form-group">
+                <label htmlFor="signup-experience">Experience (years)</label>
+                <input
+                  id="signup-experience"
+                  type="number"
+                  placeholder="Enter years of experience"
+                  min="0"
+                  max="50"
+                  value={experience}
+                  onChange={(e) => setExperience(parseInt(e.target.value, 10) || 0)}
+                  required
+                />
+              </div>
+            )}
             <div className="form-group form-group--captcha">
               <SimpleCaptcha
                 onCodeChange={handleCaptchaCodeChange}

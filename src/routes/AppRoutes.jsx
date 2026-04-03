@@ -10,6 +10,23 @@ import Marking from "../pages/Marking";
 import MyLearningOutcomes from "../pages/MyLearningOutcomes";
 import FacultyLearningOutcomes from "../pages/FacultyLearningOutcomes";
 import Courses from "../pages/Courses";
+import Profile from "../pages/Profile";
+import EditProfile from "../pages/EditProfile";
+
+function HomeRoute() {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" replace /> : <Home />;
+}
+
+function LoginRoute() {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" replace /> : <Login />;
+}
+
+function SignupRoute() {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" replace /> : <Signup />;
+}
 
 function RequireStudent({ children }) {
   const { user } = useAuth();
@@ -34,11 +51,11 @@ function RequireAuth({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<HomeRoute />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/report" element={<Report />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<LoginRoute />} />
+      <Route path="/signup" element={<SignupRoute />} />
       <Route
         path="/add-submission"
         element={
@@ -77,6 +94,22 @@ function AppRoutes() {
           <RequireUser>
             <FacultyLearningOutcomes />
           </RequireUser>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <RequireAuth>
+            <Profile />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/edit-profile"
+        element={
+          <RequireAuth>
+            <EditProfile />
+          </RequireAuth>
         }
       />
     </Routes>
