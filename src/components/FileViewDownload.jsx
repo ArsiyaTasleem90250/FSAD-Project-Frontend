@@ -3,8 +3,12 @@
  * Faculty and students use this to open or download the submitted file.
  */
 function FileViewDownload({ fileData, fileName }) {
+  if (!fileName && !fileData) {
+    return <span className="file-view-download file-view-download--na">-</span>;
+  }
+
   if (!fileData || !fileName) {
-    return <span className="file-view-download file-view-download--na">{fileName || "—"}</span>;
+    return <span className="file-view-download file-view-download--na">{fileName || "File unavailable"}</span>;
   }
 
   const inferredMime = fileData?.split(",")[0]?.match(/data:([^;]+);/)?.[1];

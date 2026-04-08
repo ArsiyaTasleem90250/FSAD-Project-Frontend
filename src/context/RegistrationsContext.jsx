@@ -1,60 +1,49 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useCallback } from "react";
-import { DEPARTMENTS } from "../constants/departments";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { getRegistrations, addRegistration } from "../api/api";
 
 const RegistrationsContext = createContext(null);
 
-const STORAGE_KEY = "sms_registered_users";
-
-const SEED_REGISTRATIONS = [
-  { email: "student1@uni.edu", role: "Student", department: DEPARTMENTS[3] },  // CSE
-  { email: "student2@uni.edu", role: "Student", department: DEPARTMENTS[3] },  // CSE
-  { email: "student3@uni.edu", role: "Student", department: DEPARTMENTS[5] },  // EEE
-  { email: "student4@uni.edu", role: "Student", department: DEPARTMENTS[9] },  // Mechanical Engineering
-  { email: "student5@uni.edu", role: "Student", department: DEPARTMENTS[13] }, // Business Administration
-  { email: "admin1@uni.edu", role: "Admin", department: DEPARTMENTS[3] },     // CSE
-  { email: "admin2@uni.edu", role: "Admin", department: DEPARTMENTS[5] },      // EEE
-  { email: "admin3@uni.edu", role: "Admin", department: DEPARTMENTS[9] },      // Mechanical Engineering
-];
-
 export function RegistrationsProvider({ children }) {
-  const [registrations, setRegistrations] = useState(() => {
-    let initialData = SEED_REGISTRATIONS;
+  const [registrations, setRegistrations] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          initialData = parsed;
-        }
-      }
-    } catch {
-      // Ignore corrupted stored data and fall back to seed registrations.
+      const data = await getRegistrations();
+      setRegistrations(data);
+    } catch (err) {
+      setError(err.message || "Failed to load registrations");
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
-    return initialData;
-  });
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const registerUser = useCallback(
-    (email, role, department = "") => {
+    async (email, role, department = "") => {
       const trimmedEmail = (email || "").trim().toLowerCase();
       if (!trimmedEmail) return;
-      setRegistrations((prev) => {
-        const exists = prev.some((r) => r.email.toLowerCase() === trimmedEmail);
-        if (exists) return prev;
-        const next = [
-          ...prev,
-          {
-            email: trimmedEmail,
-            role,
-            department: (department || "").trim(),
-          },
-        ];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        return next;
-      });
+      try {
+        // Use email hash as studentId; courseId left empty here.
+        const studentId = Math.abs(trimmedEmail.split("").reduce((a, c) => a + c.charCodeAt(0), 0));
+        const created = await addRegistration({
+          studentId,
+          courseId: 0,
+          email: trimmedEmail,
+          role,
+          department: (department || "").trim(),
+        });
+        setRegistrations((prev) => [...prev, created]);
+      } catch (err) {
+        setError(err.message || "Failed to save registration");
+      }
     },
     []
   );
@@ -62,17 +51,15 @@ export function RegistrationsProvider({ children }) {
   const updateRegistration = useCallback((email, updates = {}) => {
     const trimmedEmail = (email || "").trim().toLowerCase();
     if (!trimmedEmail) return;
-    setRegistrations((prev) => {
-      const next = prev.map((item) =>
-        item.email.toLowerCase() === trimmedEmail ? { ...item, ...updates } : item
-      );
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
+    setRegistrations((prev) =>
+      prev.map((item) =>
+        item.email && item.email.toLowerCase() === trimmedEmail ? { ...item, ...updates } : item
+      )
+    );
   }, []);
 
   return (
-    <RegistrationsContext.Provider value={{ registrations, registerUser, updateRegistration }}>
+    <RegistrationsContext.Provider value={{ registrations, registerUser, updateRegistration, error, isLoading }}>
       {children}
     </RegistrationsContext.Provider>
   );

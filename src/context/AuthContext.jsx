@@ -4,28 +4,53 @@ const AuthContext = createContext(null);
 
 const STORAGE_KEY = "sms_auth";
 
+const normalizeUser = (input) => {
+  if (!input || !input.role) return null;
+  return {
+    id: input.id ?? null,
+    role: input.role,
+    email: input.email || "",
+    name: input.name || "",
+    department: input.department || "",
+    photo: input.photo || "",
+    experience: input.experience || 0,
+    token: input.token || "",
+  };
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) return null;
-      const parsed = JSON.parse(stored);
-      return parsed?.role ? parsed : null;
+      return normalizeUser(JSON.parse(stored));
     } catch {
       return null;
     }
   });
 
-  const login = (role, email, name = "", department = "", photo = "", experience = 0) => {
-    const u = { role, email, name, department: department || "", photo: photo || "", experience: experience || 0 };
-    setUser(u);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+  const login = (...args) => {
+    const nextUser =
+      args.length === 1 && typeof args[0] === "object"
+        ? normalizeUser(args[0])
+        : normalizeUser({
+            role: args[0],
+            email: args[1],
+            name: args[2],
+            department: args[3],
+            photo: args[4],
+            experience: args[5],
+            token: args[6],
+          });
+
+    setUser(nextUser);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
   };
 
   const updateProfile = (updates) => {
     setUser((prev) => {
       if (!prev) return prev;
-      const next = { ...prev, ...updates };
+      const next = normalizeUser({ ...prev, ...updates });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });

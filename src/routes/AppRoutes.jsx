@@ -5,6 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import Report from "../pages/Report";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
+import OtpVerification from "../pages/OtpVerification";
 import AddSubmission from "../pages/AddSubmission";
 import Marking from "../pages/Marking";
 import MyLearningOutcomes from "../pages/MyLearningOutcomes";
@@ -26,6 +27,11 @@ function LoginRoute() {
 function SignupRoute() {
   const { user } = useAuth();
   return user ? <Navigate to="/dashboard" replace /> : <Signup />;
+}
+
+function OtpVerificationRoute() {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" replace /> : <OtpVerification />;
 }
 
 function RequireStudent({ children }) {
@@ -56,6 +62,7 @@ function AppRoutes() {
       <Route path="/report" element={<Report />} />
       <Route path="/login" element={<LoginRoute />} />
       <Route path="/signup" element={<SignupRoute />} />
+      <Route path="/otp-verification" element={<OtpVerificationRoute />} />
       <Route
         path="/add-submission"
         element={

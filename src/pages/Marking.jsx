@@ -12,7 +12,7 @@ function isToday(timestamp) {
 }
 
 function Marking() {
-  const { submissions, updateMarks } = useSubmissions();
+  const { submissions, updateMarks, isLoading, error } = useSubmissions();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -34,8 +34,7 @@ function Marking() {
     if (selectedCourse && !courseOptions.includes(selectedCourse)) {
       setSelectedCourse("");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseOptions]);
+  }, [courseOptions, selectedCourse]);
 
   const courseFilteredSubmissions = useMemo(() => {
     if (!selectedCourse) return visibleSubmissions;
@@ -69,13 +68,18 @@ function Marking() {
       <div className="marking-page">
         <h1 className="page-title">Track assessment data</h1>
         <p className="page-subtitle">
-          View all student submissions, enter or update marks, and analyze learning outcomes. Your name is recorded as the grader. Today’s submissions are listed first.
+          View all student submissions, enter or update marks, and analyze learning outcomes. Your name is recorded as the grader.
         </p>
+        <p className="page-subtitle">
+          Submission reads and creates are connected to Spring Boot. Marks you enter here are kept locally until the backend exposes an update endpoint.
+        </p>
+        {error && <p className="dashboard-empty">{error}</p>}
 
-        {/* Today's submissions */}
         <section className="marking-today">
           <h2 className="marking-today__title">Today&apos;s submitted files</h2>
-          {todaySubmissions.length === 0 ? (
+          {isLoading ? (
+            <p className="marking-today__empty">Loading submissions...</p>
+          ) : todaySubmissions.length === 0 ? (
             <p className="marking-today__empty">No submissions today yet.</p>
           ) : (
             <div className="marking-today__table-wrap">
@@ -98,7 +102,7 @@ function Marking() {
                       <td>
                         <FileViewDownload fileData={row.fileData} fileName={row.fileName} />
                       </td>
-                      <td>{row.marks || "—"}</td>
+                      <td>{row.marks || "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -107,7 +111,6 @@ function Marking() {
           )}
         </section>
 
-        {/* Course selector */}
         <div className="marking-search-wrap">
           <div className="marking-course-selector">
             <label className="marking-search-label">Select course</label>
@@ -147,9 +150,8 @@ function Marking() {
           </div>
         </div>
 
-        {/* All submissions table (with search filter) */}
         <div className="dashboard-card">
-          <h2>All submissions – enter marks</h2>
+          <h2>All submissions - enter marks</h2>
           <table className="edu-table">
             <thead>
               <tr>
@@ -190,14 +192,13 @@ function Marking() {
               ))}
             </tbody>
           </table>
-          {filteredSubmissions.length === 0 && (
+          {!isLoading && filteredSubmissions.length === 0 && (
             <p className="dashboard-empty">
               {searchQuery.trim() ? "No submissions match your search." : "No submissions yet."}
             </p>
           )}
         </div>
 
-        {/* All submissions for selected student */}
         {selectedIdNumber && (
           <section className="marking-student-detail">
             <div className="marking-student-detail__head">

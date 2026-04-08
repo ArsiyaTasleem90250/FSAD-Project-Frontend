@@ -6,60 +6,74 @@ import FileViewDownload from "../components/FileViewDownload";
 import "../assets/styles/auth.css";
 
 function AddSubmission() {
-  const { addSubmission, submissions, deleteSubmission } = useSubmissions();
+  const { addSubmission, submissions, deleteSubmission, isLoading, error } = useSubmissions();
   const { user } = useAuth();
   const [course, setCourse] = useState("");
   const [idNumber, setIdNumber] = useState("");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(user?.name || "");
   const [file, setFile] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const mySubmissions = submissions.filter(
-    (s) => s.studentEmail && user?.email && s.studentEmail === user.email
+    (s) => s.studentEmail && user?.email && s.studentEmail.toLowerCase() === user.email.toLowerCase()
   );
 
+  const resetForm = () => {
+    setCourse("");
+    setIdNumber("");
+    setName(user?.name || "");
+    setFile(null);
+  };
+
   const handleDelete = (id) => {
-    if (window.confirm("Delete this submission? This cannot be undone.")) {
+    if (window.confirm("Delete this submission? This will only hide it in the frontend until the backend adds delete support.")) {
       deleteSubmission(id);
     }
   };
 
-  const handleSubmit = (e) => {
+  const persistSubmission = async (fileData = null) => {
+    setIsSubmitting(true);
+    setSubmitError("");
+    setSubmitted(false);
+
+    try {
+      await addSubmission({
+        course: course.trim(),
+        idNumber: idNumber.trim(),
+        name: name.trim(),
+        fileName: file ? file.name : "",
+        studentEmail: user?.email || "",
+        department: user?.department || "",
+        fileData,
+      });
+      resetForm();
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err.message || "Failed to submit assignment.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const submissionPayload = {
-      course: course.trim(),
-      idNumber: idNumber.trim(),
-      name: name.trim(),
-      fileName: file ? file.name : "",
-      studentEmail: user?.email || "",
-      department: user?.department || "",
-    };
 
     if (!file) {
-      addSubmission(submissionPayload);
-    } else {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = typeof reader.result === "string" ? reader.result : null;
-        addSubmission({
-          ...submissionPayload,
-          fileData: base64,
-        });
-        setCourse("");
-        setIdNumber("");
-        setName("");
-        setFile(null);
-        setSubmitted(true);
-      };
-      reader.readAsDataURL(file);
+      await persistSubmission(null);
       return;
     }
 
-    setCourse("");
-    setIdNumber("");
-    setName("");
-    setFile(null);
-    setSubmitted(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = typeof reader.result === "string" ? reader.result : null;
+      await persistSubmission(base64);
+    };
+    reader.onerror = () => {
+      setSubmitError("Failed to read the selected file.");
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -75,6 +89,8 @@ function AddSubmission() {
                 Submission added successfully.
               </div>
             )}
+            {submitError && <div className="form-message">{submitError}</div>}
+            {error && <div className="form-message">{error}</div>}
 
             <form className="auth-form" onSubmit={handleSubmit}>
               <div className="form-group">
@@ -121,8 +137,8 @@ function AddSubmission() {
                 />
                 {file && <span className="file-name">{file.name}</span>}
               </div>
-              <button type="submit" className="button-primary">
-                Submit
+              <button type="submit" className="button-primary" disabled={isSubmitting || isLoading}>
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </form>
           </div>
@@ -131,7 +147,9 @@ function AddSubmission() {
         <section className="my-submissions">
           <h2 className="my-submissions__title">My submissions</h2>
           <p className="my-submissions__desc">Your submitted assignments. Use <strong>View</strong> to open the submitted PDF/file in the browser and <strong>Download</strong> to save it. Marks and the faculty who graded each submission appear once assigned.</p>
-          {mySubmissions.length === 0 ? (
+          {isLoading ? (
+            <p className="my-submissions__empty">Loading submissions...</p>
+          ) : mySubmissions.length === 0 ? (
             <p className="my-submissions__empty">No submissions yet. Submit an assignment above.</p>
           ) : (
             <div className="my-submissions__table-wrap">
@@ -156,14 +174,14 @@ function AddSubmission() {
                       <td>
                         <FileViewDownload fileData={row.fileData} fileName={row.fileName} />
                       </td>
-                      <td><strong>{row.marks || "—"}</strong></td>
-                      <td>{row.gradedBy || "—"}</td>
+                      <td><strong>{row.marks || "-"}</strong></td>
+                      <td>{row.gradedBy || "-"}</td>
                       <td>
                         <button
                           type="button"
                           className="my-submissions__delete-btn"
                           onClick={() => handleDelete(row.id)}
-                          title="Delete this submission"
+                          title="Hide this submission"
                         >
                           Delete
                         </button>

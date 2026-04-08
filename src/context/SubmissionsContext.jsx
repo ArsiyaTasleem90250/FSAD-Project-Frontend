@@ -1,86 +1,92 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { getSubmissions, submitAssignment, updateSubmissionMarks, deleteSubmission as deleteSubmissionApi } from "../api/api";
+import { useAuth } from "./AuthContext";
 
 const SubmissionsContext = createContext(null);
 
-const STORAGE_KEY = "sms_submissions_v3";
-
 export function SubmissionsProvider({ children }) {
-  const [submissions, setSubmissions] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return parsed;
-      }
-    } catch {
-      // Silently fail if localStorage is not available or parsing fails
+  const { user } = useAuth();
+  const [submissions, setSubmissions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const refreshSubmissions = useCallback(async () => {
+    if (!user?.token) {
+      setSubmissions([]);
+      setError("");
+      setIsLoading(false);
+      return;
     }
-    return [];
-  });
 
-  const addSubmission = useCallback(({ course, idNumber, name, fileName, studentEmail, fileData, department = "" }) => {
-    const id = String(Date.now());
-    const newOne = {
-      id,
-      course,
-      idNumber,
-      name,
-      fileName: fileName || "file",
-      fileData: fileData || null,
-      marks: "",
-      gradedBy: "",
-      studentEmail: studentEmail || "",
-      department: department || "",
-      submittedAt: Date.now(),
-      markedAt: null,
-    };
-    setSubmissions((prev) => {
-      const next = [...prev, newOne];
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Silently fail if localStorage is not available
-      }
-      return next;
-    });
-    return id;
-  }, []);
+    setIsLoading(true);
+    setError("");
 
-  const updateMarks = useCallback((id, marks, gradedBy = "") => {
-    setSubmissions((prev) => {
-      const next = prev.map((s) =>
-        s.id === id
-          ? { 
-              ...s, 
-              marks, 
-              gradedBy: marks && String(marks).trim() ? gradedBy : "",
-              markedAt: marks && String(marks).trim() ? Date.now() : null,
-            }
-          : s
-      );
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Silently fail if localStorage is not available
-      }
-      return next;
-    });
-  }, []);
+    try {
+      const data = await getSubmissions();
+      setSubmissions(data);
+    } catch (err) {
+      setError(err.message || "Failed to load submissions.");
+      setSubmissions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.token]);
 
-  const deleteSubmission = useCallback((id) => {
-    setSubmissions((prev) => {
-      const next = prev.filter((s) => s.id !== id);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Silently fail if localStorage is not available
+  useEffect(() => {
+    refreshSubmissions();
+  }, [refreshSubmissions]);
+
+  const addSubmission = useCallback(
+    async (payload) => {
+      const created = await submitAssignment(payload);
+      setSubmissions((prev) => [created, ...prev]);
+      return created.id;
+    },
+    []
+  );
+
+  const updateMarks = useCallback(
+    async (id, marks, gradedBy = "") => {
+      let snapshot;
+      setSubmissions((prev) => {
+        snapshot = prev.find((s) => s.id === id);
+        return prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                marks,
+                gradedBy: marks && String(marks).trim() ? gradedBy : "",
+                markedAt: marks && String(marks).trim() ? Date.now() : null,
+              }
+            : item
+        );
+      });
+
+      if (snapshot) {
+        try {
+          const updated = await updateSubmissionMarks(snapshot, marks, gradedBy);
+          setSubmissions((prev) => prev.map((s) => (s.id === id ? updated : s)));
+        } catch (err) {
+          setError(err.message || "Failed to save marks to server.");
+        }
       }
-      return next;
-    });
+    },
+    []
+  );
+
+  const deleteSubmission = useCallback(async (id) => {
+    setSubmissions((prev) => prev.filter((item) => item.id !== id));
+    try {
+      await deleteSubmissionApi(id);
+    } catch (err) {
+      setError(err.message || "Failed to delete submission on server.");
+    }
   }, []);
 
   return (
-    <SubmissionsContext.Provider value={{ submissions, addSubmission, updateMarks, deleteSubmission }}>
+    <SubmissionsContext.Provider
+      value={{ submissions, isLoading, error, refreshSubmissions, addSubmission, updateMarks, deleteSubmission }}
+    >
       {children}
     </SubmissionsContext.Provider>
   );

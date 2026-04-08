@@ -1,25 +1,35 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import { useAuth } from "../context/AuthContext";
-import { useRegistrations } from "../context/RegistrationsContext";
+import { loginUser } from "../api/api";
 import SimpleCaptcha from "../components/SimpleCaptcha";
 import "../assets/styles/auth.css";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { registrations } = useRegistrations();
   const [captchaCode, setCaptchaCode] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
   const [captchaError, setCaptchaError] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const captchaCodeRef = useRef("");
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const message = sessionStorage.getItem("postVerifyMessage");
+    if (message) {
+      setInfoMessage(message);
+      sessionStorage.removeItem("postVerifyMessage");
+    }
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setCaptchaError("");
     setLoginError("");
+    setInfoMessage("");
     const code = captchaCodeRef.current || captchaCode;
     const valid = (captchaInput || "").trim().toLowerCase() === (code || "").toLowerCase();
     if (!valid) {
@@ -29,19 +39,49 @@ function Login() {
 
     const form = e.target;
     const email = (form.querySelector("#login-email")?.value ?? "").trim().toLowerCase();
-    const name = email.split("@")[0] || "User";
-    const registeredUser = registrations.find((r) => r.email.toLowerCase() === email);
+    const password = form.querySelector("#login-password")?.value ?? "";
+    setIsLoading(true);
 
-    if (!registeredUser) {
-      setLoginError("No account found for this email. Please sign up first.");
-      return;
-    }
+    try {
+      const response = await loginUser({ email, password });
 
-    login(registeredUser.role, email, name, registeredUser.department);
-    if (registeredUser.role === "Student") {
-      navigate("/add-submission");
-    } else {
-      navigate("/marking");
+      if (!response.success) {
+        const message = response.error || "Login failed. Please check your credentials.";
+        if (message.toLowerCase().includes("verify your email")) {
+          sessionStorage.setItem("pendingVerificationEmail", email);
+          setLoginError("Your account is not verified yet. Enter the OTP to continue.");
+          navigate("/otp-verification");
+          return;
+        }
+        setLoginError(message);
+        return;
+      }
+
+      const data = response.data;
+      if (!data || !data.token) {
+        setLoginError("Login failed. Missing authentication token.");
+        return;
+      }
+
+      login({
+        id: data.id,
+        role: data.role,
+        email: data.email || email,
+        name: data.name || email.split("@")[0],
+        department: data.department || "",
+        experience: data.experience || 0,
+        token: data.token,
+      });
+
+      if (data.role === "Student") {
+        navigate("/add-submission");
+      } else {
+        navigate("/marking");
+      }
+    } catch (err) {
+      setLoginError(err.message || "Login request failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,6 +121,7 @@ function Login() {
                 autoComplete="current-password"
               />
             </div>
+            {infoMessage && <p className="success-message">{infoMessage}</p>}
             {loginError && <p className="captcha-error">{loginError}</p>}
             <div className="form-group form-group--captcha">
               <SimpleCaptcha
@@ -91,8 +132,8 @@ function Login() {
               />
               {captchaError && <p className="captcha-error">{captchaError}</p>}
             </div>
-            <button type="submit" className="button-primary">
-              Login
+            <button type="submit" className="button-primary" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
             </button>
           </form>
 

@@ -2,43 +2,87 @@ import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import { useAuth } from "../context/AuthContext";
-import { useRegistrations } from "../context/RegistrationsContext";
 import { DEPARTMENTS } from "../constants/departments";
 import SimpleCaptcha from "../components/SimpleCaptcha";
+import { registerUser } from "../api/api";
 import "../assets/styles/auth.css";
 
 function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { registerUser } = useRegistrations();
   const [role, setRole] = useState("Student");
   const [department, setDepartment] = useState(DEPARTMENTS[0]);
   const [experience, setExperience] = useState(0);
   const [captchaCode, setCaptchaCode] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
   const [captchaError, setCaptchaError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const captchaCodeRef = useRef("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setCaptchaError("");
+    setError("");
+    
     const code = captchaCodeRef.current || captchaCode;
     const valid = (captchaInput || "").trim().toLowerCase() === (code || "").toLowerCase();
     if (!valid) {
       setCaptchaError("Invalid code. Please enter the code shown above.");
       return;
     }
+
     const form = e.target;
     const name = form.querySelector("#signup-name")?.value ?? "";
     const email = form.querySelector("#signup-email")?.value ?? "";
+    const password = form.querySelector("#signup-password")?.value ?? "";
+    const confirmPassword = form.querySelector("#signup-confirm")?.value ?? "";
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     const dept = form.querySelector("#signup-department")?.value ?? department;
     const exp = role === "Admin" ? parseInt(form.querySelector("#signup-experience")?.value ?? "0", 10) : 0;
-    registerUser(email, role, dept);
-    login(role, email, name, dept, "", exp);
-    if (role === "Student") {
-      navigate("/add-submission");
-    } else {
-      navigate("/marking");
+
+    setIsLoading(true);
+    try {
+      // Call the local registration function
+      const response = await registerUser({
+        name,
+        email,
+        password,
+        role,
+        department: dept,
+        experience: exp
+      });
+
+      if (response.success) {
+        // Store signup data temporarily for OTP verification
+        sessionStorage.setItem('pendingSignup', JSON.stringify({
+          name,
+          email,
+          password,
+          role,
+          department: dept,
+          experience: exp
+        }));
+        
+        if (response.data?.otp) {
+          alert(`OTP generated for local testing: ${response.data.otp}`);
+          sessionStorage.setItem('debugOtp', response.data.otp);
+        }
+
+        // Redirect to OTP verification
+        navigate("/otp-verification");
+      } else {
+        setError(response.error || "Registration failed. Please try again.");
+      }
+    } catch (err) {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -148,8 +192,11 @@ function Signup() {
               />
               {captchaError && <p className="captcha-error">{captchaError}</p>}
             </div>
-            <button type="submit" className="button-primary">
-              Create account
+            
+            {error && <p className="error-message" style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+            
+            <button type="submit" className="button-primary" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Create account"}
             </button>
           </form>
 
